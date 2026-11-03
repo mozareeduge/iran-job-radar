@@ -1,6 +1,6 @@
-"""python -m jobradar <start|doctor|init|prefs|run|rank|report|serve|links|export|mark|note>"""
+"""python -m jobradar <start|doctor|init|prefs|run|rank|report|serve|links|export|mark|note|resume|linkedin|check-update>"""
 import argparse, sys, json, pathlib, sqlite3
-from . import profile as P, store, collectors as C, runner, report as RP, rank as R, links as LK
+from . import profile as P, store, collectors as C, runner, report as RP, rank as R, links as LK, resume as RS, updater as UP
 
 PROBES = {"quera": "https://quera.org/magnet/jobs", "irantalent": "https://www.irantalent.com/", "karboom": "https://karboom.io/jobs"}
 
@@ -21,9 +21,21 @@ def doctor(a):
         ws.mkdir(parents=True, exist_ok=True); t = ws / ".write-test"; t.write_text("x"); t.unlink(); out(f"[ok] workspace writable: {ws}")
     except Exception as e:
         bad += 1; out(f"[FAIL] workspace not writable: {ws} ({e})"); steps.append("Pass --workspace <a folder you can write to>.")
-    if (ws / "profile.json").exists(): out("[ok] profile.json present")
-    else: out("[note] no profile yet"); steps.append("python -m jobradar init --example junior-qa   (or --role \"your role\")")
-    if a.offline: out("[skip] network check (--offline)")
+    if (ws / "profile.json").exists():
+        out("[ok] profile.json present")
+        try:
+            p = P.load(ws)
+            if p.get("resume_skills"):
+                out(f"[ok] resume: {len(p['resume_skills'])} skills loaded ({', '.join(p['resume_skills'][:4])}...)")
+            if p.get("linkedin_url"):
+                out(f"[ok] linkedin: {p['linkedin_url']}")
+        except Exception:
+            pass
+    else:
+        out("[note] no profile yet"); steps.append("python -m jobradar init --example junior-qa   (or --role \"your role\")")
+
+    if a.offline:
+        out("[skip] network check (--offline)")
     else:
         http = C.Http(delay=0.5, timeout=12)
         for s, u in PROBES.items():
@@ -33,6 +45,13 @@ def doctor(a):
             except C.Blocked as e:
                 out(f"[warn] {C.NAMES[s]}: {e.reason}. The run will name it as blocked; the other sources still run.")
         for s, why in C.DISABLED.items(): out(f"[off] {s}: {why}")
+
+        # Check for software updates
+        up = UP.check_update(ws, force=False, timeout=2.0)
+        if up.get("has_update"):
+            out(f"[notice] update available: v{up['latest_version']} (current: v{up['current_version']}) -> {up['url']}")
+            steps.insert(0, "Update Iran Job Radar: git pull (or download latest from GitHub)")
+
     steps.append("python -m jobradar run   then   python -m jobradar report")
     out("\nNext steps:"); [out(f"  {i}. {s}") for i, s in enumerate(steps, 1)]
     return 1 if bad else 0
@@ -46,6 +65,7 @@ Q = {
            "remote": "دورکاری قبول است؟ [ب]له / [ن]ه (پیش‌فرض بله): ",
            "remote_only": "فقط دورکاری؟ [ب]له / [ن]ه (پیش‌فرض نه): ",
            "exclude": "کلمه‌هایی که نمی‌خواهید در عنوان باشد (مثلاً: فروش, بازاریابی). خالی = هیچ: ",
+           "resume": "فایل یا متن رزومه (اختیاری، برای تطبیق مهارت‌ها با شرح شغل). خالی = رد شدن: ",
            "need_role": "دست‌کم یک عنوان شغلی لازم است."},
     "en": {"name": "Name for this profile (optional, e.g. \"Junior QA\"): ",
            "roles": "Which jobs? Separate titles with commas; give both English and Persian if you can\n  (e.g. QA engineer, software tester, کنترل کیفیت): ",
@@ -54,6 +74,7 @@ Q = {
            "remote": "Is remote OK? [y]es / [n]o (default yes): ",
            "remote_only": "Remote only? [y]es / [n]o (default no): ",
            "exclude": "Words you do NOT want in a title (e.g. sales, marketing). Empty = none: ",
+           "resume": "Resume file path or text summary (optional, for matching skills). Empty = skip: ",
            "need_role": "At least one job title is needed."},
 }
 YES = {"y", "yes", "ب", "بله", "آره", "اره", "1"}
@@ -67,7 +88,7 @@ def split(s):
 def ask(prompt, inp):
     try:
         return inp(prompt).strip()
-    except EOFError:
+    except (EOFError, StopIteration):
         return ""
 
 
@@ -92,7 +113,22 @@ def wizard(lang, inp=input):
     remote = yesno(ask(q["remote"], inp), True)
     ronly = yesno(ask(q["remote_only"], inp), False) if remote else False
     excl = split(ask(q["exclude"], inp))
-    return P.make(None, roles, lv, places, remote, name=name, ui_lang=lang, exclude=excl, remote_only=ronly)
+    res_input = ask(q["resume"], inp)
+    res_path = ""
+    res_skills = []
+    if res_input:
+        p_cand = pathlib.Path(res_input).expanduser()
+        if p_cand.exists() and p_cand.is_file():
+            try:
+                txt = RS.read_text_from_file(p_cand)
+                res_path = str(p_cand.resolve())
+                res_skills = RS.extract_skills(txt)
+            except Exception:
+                res_skills = RS.extract_skills(res_input)
+        else:
+            res_skills = RS.extract_skills(res_input)
+    return P.make(None, roles, lv, places, remote, name=name, ui_lang=lang, exclude=excl, remote_only=ronly,
+                  resume_path=res_path, resume_skills=res_skills)
 
 
 def pick_lang(a, inp=input):
@@ -126,13 +162,17 @@ def init(a):
 
 def show_prefs(p):
     lang = p.get("ui_lang", "fa")
+    res_str = f" | رزومه: {len(p.get('resume_skills') or [])} مهارت" if p.get("resume_skills") else ""
+    li_str = f" | لینکدین: {p.get('linkedin_url')}" if p.get("linkedin_url") else ""
     if lang == "fa":
         out(f"  زبان: فارسی | عنوان‌ها: {'، '.join(p['target_roles'])} | سطح: {p['seniority']} | شهرها: {', '.join(p['locations']) or 'هر جا'}"
             f" | دورکاری: {'بله' if p['remote_ok'] else 'نه'}{' (فقط دورکاری)' if p.get('remote_only') else ''}"
-            f" | کنارگذاشته: {', '.join(p.get('exclude_words') or []) or '-'}")
+            f" | کنارگذاشته: {', '.join(p.get('exclude_words') or []) or '-'}{res_str}{li_str}")
     else:
+        res_str_en = f" | resume: {len(p.get('resume_skills') or [])} skills" if p.get("resume_skills") else ""
+        li_str_en = f" | linkedin: {p.get('linkedin_url')}" if p.get("linkedin_url") else ""
         out(f"  language: English | roles: {', '.join(p['target_roles'])} | level: {p['seniority']} | places: {', '.join(p['locations']) or 'any'}"
-            f" | remote ok: {p['remote_ok']}{' (remote only)' if p.get('remote_only') else ''} | excluded: {', '.join(p.get('exclude_words') or []) or '-'}")
+            f" | remote ok: {p['remote_ok']}{' (remote only)' if p.get('remote_only') else ''} | excluded: {', '.join(p.get('exclude_words') or []) or '-'}{res_str_en}{li_str_en}")
 
 
 def prefs(a):
@@ -149,12 +189,117 @@ def prefs(a):
     if a.remote_only is not None: p["remote_only"] = a.remote_only == "yes"
     if a.exclude: p["exclude_words"] = list(dict.fromkeys((p.get("exclude_words") or []) + a.exclude))
     if a.unexclude: p["exclude_words"] = [w for w in p.get("exclude_words") or [] if w not in a.unexclude]
-    changed = any(x not in (None, [], "") for x in (a.lang, a.add_role, a.remove_role, a.seniority, a.location, a.remote, a.remote_only, a.exclude, a.unexclude))
+    if getattr(a, "clear_resume", False):
+        p["resume_path"] = ""; p["resume_skills"] = []
+    if getattr(a, "resume", None):
+        p_cand = pathlib.Path(a.resume).expanduser()
+        txt = ""
+        if p_cand.exists() and p_cand.is_file():
+            try: txt = RS.read_text_from_file(p_cand); p["resume_path"] = str(p_cand.resolve())
+            except Exception as e: out(f"Error reading resume file: {e}"); return 1
+        else: txt = a.resume; p["resume_path"] = "direct text"
+        p["resume_skills"] = RS.extract_skills(txt, custom_skills=p.get("resume_skills"))
+    if getattr(a, "clear_linkedin", False):
+        p["linkedin_url"] = ""; p["linkedin_summary"] = ""
+    if getattr(a, "linkedin", None):
+        p["linkedin_url"] = RS.normalize_linkedin_url(a.linkedin)
+
+    changed = any(x not in (None, [], "") for x in (a.lang, a.add_role, a.remove_role, a.seniority, a.location, a.remote, a.remote_only, a.exclude, a.unexclude,
+                                                    getattr(a, "resume", None), getattr(a, "clear_resume", None), getattr(a, "linkedin", None), getattr(a, "clear_linkedin", None)))
     if changed:
         P.save(ws, p); out("saved / ذخیره شد")
         if a.add_role: out("new roles need a new search: python -m jobradar run   |   برای عنوان‌های تازه دوباره run بزنید")
         else: out("ranking changes apply at once: python -m jobradar report   |   رتبه‌بندی بلافاصله عوض می‌شود: report")
     show_prefs(p)
+    return 0
+
+
+def resume_cmd(a):
+    ws = P.workspace_path(a.workspace)
+    try: p = P.load(ws)
+    except FileNotFoundError as e: out(str(e)); return 2
+    fa = p.get("ui_lang") == "fa"
+    if a.clear:
+        p["resume_path"] = ""; p["resume_skills"] = []
+        P.save(ws, p); out("رزومه و مهارت‌های استخراج‌شده پاک شدند." if fa else "Resume and extracted skills cleared.")
+        return 0
+    if a.show:
+        skills = p.get("resume_skills") or []
+        out(f"مسیر رزومه: {p.get('resume_path') or '-'}" if fa else f"Resume path: {p.get('resume_path') or '-'}")
+        out(f"مهارت‌های استخراج‌شده ({len(skills)}): {', '.join(skills) if skills else '-'}" if fa else f"Extracted skills ({len(skills)}): {', '.join(skills) if skills else '-'}")
+        return 0
+    if a.add_skill:
+        sk_list = p.get("resume_skills") or []
+        for sk in a.add_skill:
+            for item in split(sk):
+                if item.lower() not in sk_list: sk_list.append(item.lower())
+        p["resume_skills"] = sk_list; P.save(ws, p)
+        out(f"مهارت‌ها به‌روز شدند ({len(sk_list)} مورد)." if fa else f"Skills updated ({len(sk_list)} total).")
+        return 0
+    if a.source:
+        src = a.source.strip()
+        p_cand = pathlib.Path(src).expanduser()
+        txt = ""
+        if p_cand.exists() and p_cand.is_file():
+            try:
+                txt = RS.read_text_from_file(p_cand); p["resume_path"] = str(p_cand.resolve())
+            except Exception as e:
+                out(f"خطا در خواندن فایل رزومه: {e}" if fa else f"Error reading resume file: {e}"); return 1
+        else:
+            txt = src; p["resume_path"] = "direct text"
+        extracted = RS.extract_skills(txt, custom_skills=p.get("resume_skills"))
+        p["resume_skills"] = extracted; P.save(ws, p)
+        out(f"رزومه ذخیره شد. {len(extracted)} مهارت شناسایی شد." if fa else f"Resume saved. {len(extracted)} skills identified.")
+        if extracted:
+            out(f"مهارت‌ها: {', '.join(extracted[:8])}{' ...' if len(extracted) > 8 else ''}" if fa else f"Skills: {', '.join(extracted[:8])}{' ...' if len(extracted) > 8 else ''}")
+        out("رتبه‌بندی بلافاصله با مهارت‌های جدید به‌روز می‌شود: python -m jobradar report" if fa else "Ranking applies immediately: python -m jobradar report")
+        return 0
+    skills = p.get("resume_skills") or []
+    out(f"رزومه: {p.get('resume_path') or 'ثبت نشده'} ({len(skills)} مهارت)" if fa else f"Resume: {p.get('resume_path') or 'none'} ({len(skills)} skills)")
+    return 0
+
+
+def linkedin_cmd(a):
+    ws = P.workspace_path(a.workspace)
+    try: p = P.load(ws)
+    except FileNotFoundError as e: out(str(e)); return 2
+    fa = p.get("ui_lang") == "fa"
+    if a.clear:
+        p["linkedin_url"] = ""; p["linkedin_summary"] = []
+        P.save(ws, p); out("اطلاعات لینکدین پاک شد." if fa else "LinkedIn info cleared.")
+        return 0
+    if a.url:
+        u = RS.normalize_linkedin_url(a.url); p["linkedin_url"] = u; P.save(ws, p)
+        out(f"آدرس لینکدین ذخیره شد: {u}" if fa else f"LinkedIn URL saved: {u}")
+        return 0
+    if a.headline:
+        p["linkedin_summary"] = a.headline.strip()
+        sk = RS.extract_skills(a.headline, custom_skills=p.get("resume_skills"))
+        if sk:
+            current = p.get("resume_skills") or []
+            p["resume_skills"] = list(dict.fromkeys(current + sk))
+        P.save(ws, p); out("عنوان/خلاصه لینکدین ذخیره شد و مهارت‌ها استخراج گردید." if fa else "LinkedIn headline saved and skills extracted.")
+        return 0
+    out(f"لینکدین کنونی: {p.get('linkedin_url') or '-'}" if fa else f"Current LinkedIn: {p.get('linkedin_url') or '-'}")
+    return 0
+
+
+def check_update_cmd(a):
+    ws = P.workspace_path(a.workspace)
+    fa = True
+    try: p = P.load(ws); fa = p.get("ui_lang") == "fa"
+    except Exception: pass
+    out("در حال بررسی نسخهٔ جدید در گیت‌هاب..." if fa else "Checking for updates on GitHub...")
+    res = UP.check_update(ws, force=True, timeout=5.0)
+    cur = res["current_version"]
+    latest = res["latest_version"]
+    if res["has_update"]:
+        out(f"\n💡 {res['message_fa'] if fa else res['message_en']}")
+        out(f"نسخهٔ فعلی: {cur} | نسخهٔ جدید: {latest}" if fa else f"Current: {cur} | Latest: {latest}")
+        out(f"صفحهٔ گیت‌هاب: {res['url']}" if fa else f"GitHub page: {res['url']}")
+        out("برای دریافت نسخهٔ جدید بزنید: git pull" if fa else "To pull the update, run: git pull")
+    else:
+        out(f"شما از آخرین نسخه استفاده می‌کنید (نسخهٔ {cur})." if fa else f"You are running the latest version (v{cur}).")
     return 0
 
 
@@ -275,7 +420,22 @@ def main(argv=None):
     s.add_argument("--lang", choices=["fa", "en"]); s.add_argument("--add-role", action="append", default=[]); s.add_argument("--remove-role", action="append", default=[])
     s.add_argument("--seniority", choices=["junior", "mid", "senior"]); s.add_argument("--location", action="append", default=None)
     s.add_argument("--remote", choices=["yes", "no"]); s.add_argument("--remote-only", choices=["yes", "no"])
-    s.add_argument("--exclude", action="append", default=[]); s.add_argument("--unexclude", action="append", default=[]); s.set_defaults(f=prefs)
+    s.add_argument("--exclude", action="append", default=[]); s.add_argument("--unexclude", action="append", default=[])
+    s.add_argument("--resume", help="path to resume file (.txt, .md, .pdf) or resume text"); s.add_argument("--clear-resume", action="store_true")
+    s.add_argument("--linkedin", help="LinkedIn profile URL"); s.add_argument("--clear-linkedin", action="store_true"); s.set_defaults(f=prefs)
+    s = sp.add_parser("resume", help="add or view resume and extracted skills for matching")
+    s.add_argument("source", nargs="?", help="file path (.txt, .md, .pdf) or direct resume text")
+    s.add_argument("--show", action="store_true", help="show current resume and extracted skills")
+    s.add_argument("--clear", action="store_true", help="clear resume and extracted skills")
+    s.add_argument("--add-skill", action="append", default=[], help="add custom skill(s) separated by commas")
+    s.set_defaults(f=resume_cmd)
+    s = sp.add_parser("linkedin", help="set or clear LinkedIn profile URL or headline")
+    s.add_argument("url", nargs="?", help="LinkedIn profile URL")
+    s.add_argument("--headline", help="pasted LinkedIn headline/summary to extract skills from")
+    s.add_argument("--clear", action="store_true", help="clear LinkedIn info")
+    s.set_defaults(f=linkedin_cmd)
+    s = sp.add_parser("check-update", aliases=["update"], help="check if a newer version is available on GitHub")
+    s.set_defaults(f=check_update_cmd)
     s = sp.add_parser("start", help="guided: ask, search, report, open (start here)"); s.add_argument("--lang", choices=["fa", "en"])
     s.add_argument("--delay", type=float, default=1.0); s.add_argument("--no-open", action="store_true"); s.set_defaults(f=start)
     sp.add_parser("links", help="search links for JobVision, Jobinja, LinkedIn and company careers pages").set_defaults(f=links_cmd)

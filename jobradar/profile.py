@@ -4,11 +4,14 @@ import json, pathlib, os
 SCHEMA = "jobradar-profile/1"
 TEMPLATE = {"schema": SCHEMA, "name": "", "ui_lang": "fa", "target_roles": [], "seniority": "mid", "locations": [],
             "remote_ok": True, "remote_only": False, "languages": ["fa", "en"], "employment": [], "exclude_words": [],
-            "eligibility": "iran-resident"}
+            "eligibility": "iran-resident",
+            "resume_path": "", "resume_skills": [], "linkedin_url": "", "linkedin_summary": ""}
 # ui_lang: fa (Persian, right-to-left, default) or en
 # employment [] = any (full-time and part-time are treated the same)
 # exclude_words: a job whose title contains one of these is hidden, with the reason shown
 # remote_only: on-site and unknown-mode jobs drop to the bottom (kept, never deleted)
+# resume_skills: extracted skills/keywords from resume or LinkedIn for bonus matching
+# linkedin_url: user's LinkedIn profile link (all stays on user's computer)
 
 EXAMPLES = {
     "junior-qa": {"name": "Junior QA", "target_roles": ["qa engineer", "tester", "software tester", "quality assurance", "کنترل کیفیت", "تست نرم افزار"],
@@ -24,7 +27,8 @@ def workspace_path(arg=None):
     return pathlib.Path(arg or os.environ.get("JOBRADAR_WORKSPACE") or "workspace").resolve()
 
 
-def make(example=None, roles=(), seniority=None, locations=(), remote_ok=None, name="", ui_lang=None, exclude=(), remote_only=None):
+def make(example=None, roles=(), seniority=None, locations=(), remote_ok=None, name="", ui_lang=None, exclude=(), remote_only=None,
+         resume_path="", resume_skills=None, linkedin_url="", linkedin_summary=""):
     p = json.loads(json.dumps(TEMPLATE))
     if example:
         p.update(json.loads(json.dumps(EXAMPLES[example])))
@@ -36,6 +40,10 @@ def make(example=None, roles=(), seniority=None, locations=(), remote_ok=None, n
     if name: p["name"] = name
     if ui_lang: p["ui_lang"] = ui_lang
     if exclude: p["exclude_words"] = list(exclude)
+    if resume_path: p["resume_path"] = str(resume_path)
+    if resume_skills: p["resume_skills"] = list(resume_skills)
+    if linkedin_url: p["linkedin_url"] = str(linkedin_url)
+    if linkedin_summary: p["linkedin_summary"] = str(linkedin_summary)
     return p
 
 
@@ -79,4 +87,7 @@ def tips(p):
     if len(roles) > 8:
         out.append(("many", "More than 8 titles makes runs slow (each title is one search per site).",
                     "بیش از ۸ عنوان اجرا را کند می‌کند، چون هر عنوان در هر سایت یک جست‌وجوی جداست."))
+    if not p.get("resume_skills") and not p.get("resume_path"):
+        out.append(("resume_tip", "Optionally add your resume or LinkedIn to match your specific skills: python -m jobradar resume <file.txt>",
+                    "می‌توانید رزومه یا لینکدین خود را اضافه کنید تا مهارت‌هایتان با متن آگهی سنجیده شود: python -m jobradar resume <file.txt>"))
     return out

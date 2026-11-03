@@ -2,7 +2,7 @@
 Interface language follows profile.ui_lang: fa (Persian, right-to-left, default) or en. Job text is shown as published."""
 import html, json, csv, io, pathlib, datetime as dt
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from . import store, rank as R, runner, profile as P, i18n, links
+from . import store, rank as R, runner, profile as P, i18n, links, updater
 
 E = html.escape
 
@@ -94,6 +94,13 @@ def render(ws, interactive=False, limit=100):
     saved = [r for r in visible if r["state"] == "saved"]
     rest = [r for r in visible if r["state"] != "saved" and r["matched"]][:limit]
     unmatched = sum(1 for r in visible if not r["matched"] and r["state"] != "saved")
+
+    up = updater.check_update(ws, force=False, timeout=1.0)
+    up_banner = ""
+    if up and up.get("has_update"):
+        msg = up["message_fa"] if lang == "fa" else up["message_en"]
+        up_banner = f'<div class="banner" style="border-inline-start-color:var(--ok);margin-bottom:1em">💡 <b>{E(L["update_available"])}:</b> {E(msg)} <a href="{E(up["url"])}" target="_blank" rel="noopener">GitHub</a></div>'
+
     if run_row:
         summ = json.loads(run_row["summary"] or "{}")
         st = run_row["status"]
@@ -116,9 +123,16 @@ def render(ws, interactive=False, limit=100):
                 f'<td><bdi>{E(L["never"] if c["last_success"] == "never" else i18n.when(c["last_success"]))}</bdi></td></tr>')
     yn = L["yes"] if p["remote_ok"] else L["no"]
     tips = "".join(f'<p class="tip">💡 {E(fa if lang == "fa" else en)}</p>' for _, en, fa in P.tips(p))
-    body = (f'<h1>{L["title"]}</h1><p>{L["profile"]}: <b><bdi>{E(p["name"] or L["unnamed"])}</bdi></b> · {L["roles"]}: <bdi>{E("، ".join(p["target_roles"]) if lang == "fa" else ", ".join(p["target_roles"]))}</bdi> · '
+
+    res_info = ""
+    if p.get("resume_skills"):
+        res_info = f' · {L["resume_skills"]}: <bdi>{i18n.num(lang, len(p["resume_skills"]))} {L["skills_found"]}</bdi>'
+    if p.get("linkedin_url"):
+        res_info += f' · <a href="{E(p["linkedin_url"])}" target="_blank" rel="noopener">LinkedIn</a>'
+
+    body = (f'{up_banner}<h1>{L["title"]}</h1><p>{L["profile"]}: <b><bdi>{E(p["name"] or L["unnamed"])}</bdi></b> · {L["roles"]}: <bdi>{E("، ".join(p["target_roles"]) if lang == "fa" else ", ".join(p["target_roles"]))}</bdi> · '
             f'{L["level"]}: {E(R.LV_FA.get(p["seniority"], p["seniority"]) if lang == "fa" else p["seniority"])} · '
-            f'{L["places"]}: <bdi>{E(", ".join(p["locations"]) or L["any"])}</bdi> · {L["remote_ok"]}: {yn}</p>{tips}{head}'
+            f'{L["places"]}: <bdi>{E(", ".join(p["locations"]) or L["any"])}</bdi> · {L["remote_ok"]}: {yn}{res_info}</p>{tips}{head}'
             f'<h2>{L["coverage"]}</h2><table><tr><th>{L["c_source"]}</th><th>{L["c_tried"]}</th><th>{L["c_ok"]}</th><th>{L["c_blocked"]}</th>'
             f'<th>{L["c_jobs"]}</th><th>{L["c_last"]}</th></tr>{trs}</table><p class="tip">{L["scope"]}</p>')
     if saved:

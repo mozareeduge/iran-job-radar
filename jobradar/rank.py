@@ -64,6 +64,20 @@ def rank_one(p, r, today=None):
     else:
         pts -= 20
         why.append("no target role found in title or description (-20)"); fa.append("هیچ‌کدام از عنوان‌های شما در آگهی نیست (-20)")
+
+    # Resume & LinkedIn skills match
+    res_skills = [s.strip().lower() for s in (p.get("resume_skills") or []) if s.strip()]
+    if res_skills:
+        matched_sk = [sk for sk in res_skills if term_re(sk).search(title) or term_re(sk).search(jd)]
+        if matched_sk:
+            sk_pts = min(len(matched_sk) * 3, 15)
+            pts += sk_pts
+            top_sk = ", ".join(matched_sk[:4])
+            if len(matched_sk) > 4:
+                top_sk += f" (+{len(matched_sk)-4} more)"
+            why.append(f"resume matches {len(matched_sk)} skills: {top_sk} (+{sk_pts})")
+            fa.append(f"رزومه {len(matched_sk)} مهارت منطبق دارد: {top_sk} (+{sk_pts})")
+
     jl = level_of(f'{r["title"]} {r.get("seniority") or ""}')
     if jl:
         v = {0: 12, 1: -4, 2: -15}[abs(LEVELS[jl] - LEVELS[p["seniority"]])]

@@ -7,170 +7,180 @@
 
 ## فارسی
 
-رادار شغلی چند سایت کاریابی ایرانی را با عنوان‌های شغلی شما می‌گردد. آگهی‌ها را برای شما رتبه‌بندی می‌کند و کنار هر امتیاز دلیلش را می‌نویسد. نتیجه یک گزارش فارسی و راست‌به‌چپ است. همه‌چیز روی کامپیوتر خود شما می‌ماند و هیچ درخواستی خودکار فرستاده نمی‌شود.
+رادار شغلی ایران یک ابزار سبک، مستقل و متن‌باز است که سایت‌های استخدامی کشور را بر اساس اولویت‌ها، عنوان‌ها و مهارت‌های شما جست‌وجو می‌کند. آگهی‌ها را شفاف رتبه‌بندی می‌کند، در کنار هر امتیاز دلیل دقیق آن را می‌نویسد و نتیجه را در یک گزارش فارسی و راست‌به‌چپ نمایش می‌دهد. 
+
+همه‌چیز ۱۰۰٪ روی رایانهٔ شخصی شما اجرا و ذخیره می‌شود؛ بدون ارسال داده به سرور خارجی، بدون نیاز به ثبت‌نام و بدون ارسال خودکار درخواست همکاری.
 
 ### شروع، در سه قدم
 
-۱. [پایتون](https://www.python.org/downloads/) را نصب کنید. در ویندوز تیک **Add python to PATH** را بزنید.
+۱. **نصب پایتون:** اگر پایتون ندارید، نسخهٔ ۳.۹ به بالا را از [python.org](https://www.python.org/downloads/) نصب کنید (در ویندوز حتماً تیک **Add python to PATH** را بزنید).
+۲. **دریافت پروژه:** دکمهٔ سبز **Code** در بالای همین صفحه را بزنید و **Download ZIP** را انتخاب کنید. سپس فایل دانلودشده را از حالت فشرده خارج کنید.
+۳. **اجرا:** در ویندوز روی `start.bat` دوبار کلیک کنید. در مک یا لینوکس در ترمینال بزنید: `sh start.sh`
 
-۲. همین صفحه را دانلود کنید: دکمهٔ سبز **Code** و بعد **Download ZIP**. فایل را از حالت فشرده خارج کنید.
+در اجرای اول، چند سؤال کوتاه و مشخص پرسیده می‌شود:
+- عنوان‌های شغلی مورد نظر (فارسی و انگلیسی، مثلاً: `کنترل کیفیت, QA engineer`)؛
+- سطح تجربه (جونیور، میانی، ارشد)؛
+- شهرهای مد نظر (یا خالی برای همهٔ شهرها)؛
+- تمایل به دورکاری (بله/خیر و اینکه فقط دورکاری مد نظر است یا خیر)؛
+- کلماتی که مایلید از نتایج حذف شوند (مانند فروش، بازاریابی و...)؛
+- فایل یا متن رزومه (اختیاری؛ برای تطبیق مهارت‌های تخصصی شما با شرح آگهی‌ها).
 
-۳. در ویندوز روی `start.bat` دوبار کلیک کنید. در مک یا لینوکس این را بزنید: `sh start.sh`
+سپس رادار منابع را بررسی می‌کند، آگهی‌ها را رتبه‌بندی می‌کند و گزارش را در مرورگر شما باز می‌کند. اگر وسط کار آن را ببندید، در اجرای بعد از همان نقطه کار را ادامه می‌دهد.
 
-رادار اول زبان را می‌پرسد (فارسی یا English). بعد این چند سؤال کوتاه را می‌پرسد:
+---
 
-- چه شغلی می‌خواهید؛
-- سطحتان چیست؛
-- کدام شهرها برایتان مناسب است؛
-- دورکاری را قبول دارید یا نه؛
-- چه کلمه‌هایی نباید در عنوان آگهی باشد.
+### منابع و نحوهٔ جست‌وجو
 
-بعد جست‌وجو می‌کند، گزارش می‌سازد و آن را در مرورگر باز می‌کند. بار اول چند دقیقه طول می‌کشد. اگر وسط کار ببندید، دفعهٔ بعد از همان‌جا ادامه می‌دهد.
-
-**راهنما:** عنوان‌ها را هم فارسی بنویسید هم انگلیسی، مثلاً «کنترل کیفیت, QA engineer». خیلی از آگهی‌ها فقط به یکی از این دو زبان نوشته می‌شوند. اگر فقط یکی را بنویسید، رادار خودش یادآوری می‌کند.
-
-### کجا را می‌گردد
-
-| سایت | چطور | محدودیت |
+| منبع | نحوهٔ عملکرد | وضعیت و محدودیت‌ها |
 |---|---|---|
-| [ایران‌تلنت](https://www.irantalent.com) | خودکار | دو صفحهٔ اول نتایج برای هر عنوان |
-| [کاربوم](https://karboom.io) | خودکار | صفحهٔ اول نتایج و جزئیات حداکثر ۸ آگهی برای هر عنوان |
-| [کوئرا مگنت](https://quera.org/magnet/jobs) | خودکار | بیشتر آگهی‌های برنامه‌نویسی و فنی؛ برای شغل‌های دیگر معمولاً خالی است |
-| [جاب‌ویژن](https://jobvision.ir) | لینک جست‌وجو در گزارش | قوانین سایت برداشت خودکار را محدود می‌کند؛ شما در مرورگر خودتان باز می‌کنید |
-| [جابینجا](https://jobinja.ir) | لینک جست‌وجو در گزارش | همان دلیل |
-| [لینکدین](https://www.linkedin.com/jobs) | لینک جست‌وجو در گزارش | ورود به حساب لازم است و برداشت خودکار ممنوع است |
-| [ای‌استخدام](https://www.e-estekhdam.com) | لینک جست‌وجو در گزارش | — |
-| صفحهٔ استخدام ۱۵ شرکت ایرانی | فهرست لینک در گزارش | دیجی‌کالا، کافه‌بازار، دیوار، تپسی، اسنپ‌فود، باسلام، خودرو۴۵، یکتانت، دیجی‌پی، داتین، سپ، ابر آروان، زرین‌پال، وندار، نماوا. همه در ۱۲ آبان ۱۴۰۵ بررسی شدند و باز می‌شدند. |
+| [ایران‌تلنت (IranTalent)](https://www.irantalent.com) | خودکار | بررسی دو صفحهٔ اول نتایج برای هر عنوان |
+| [کاربوم (Karboom)](https://karboom.io) | خودکار | صفحهٔ اول نتایج و بررسی دقیق تا ۸ آگهی برای هر عنوان |
+| [کوئرا مگنت (Quera)](https://quera.org/magnet/jobs) | خودکار | تمرکز روی آگهی‌های فنی و نرم‌افزاری |
+| [جاب‌ویژن (JobVision)](https://jobvision.ir) | لینک مستقیم جست‌وجو در گزارش | به‌دلیل شرایط سایت و جلوگیری از انسداد، با یک کلیک در مرورگر خودتان باز می‌شود |
+| [جابینجا (Jobinja)](https://jobinja.ir) | لینک مستقیم جست‌وجو در گزارش | همان دلیل |
+| [لینکدین (LinkedIn)](https://www.linkedin.com/jobs) | لینک مستقیم جست‌وجو در گزارش | نیاز به ورود به حساب کاربری دارد و برداشت خودکار مجاز نیست |
+| [ای‌استخدام (e-estekhdam)](https://www.e-estekhdam.com) | لینک مستقیم جست‌وجو در گزارش | باز شدن مستقیم با فیلترهای شما |
+| صفحهٔ استخدام ۱۵ شرکت معتبر | پیوند مستقیم به بخش Careers | دیجی‌کالا، کافه‌بازار، دیوار، تپسی، اسنپ‌فود، باسلام، خودرو۴۵، یکتانت، دیجی‌پی، داتین، سپ، ابر آروان، زرین‌پال، وندار، نماوا |
 
-قاعده‌ها:
+**اصول فنی:**
+- رادار بین درخواست‌ها وقفهٔ ایمن قرار می‌دهد و هرگز سایت‌ها را با ترافیک ناگهانی تحت فشار نمی‌گذارد.
+- هرگز وارد حساب‌های کاربری شخصی نمی‌شود و موانع قانونی و لاگین سایت‌ها را دور نمی‌زند.
+- اگر دسترسی به منبعی با خطا مواجه شود، در جدول گزارش شفاف با ذکر دلیل ثبت می‌شود تا نتیجهٔ «بدون آگهی» با «خطای دسترسی» اشتباه نشود.
 
-- رادار هر بار فقط یک صفحه می‌خواهد و بین درخواست‌ها یک ثانیه صبر می‌کند.
-- هرگز وارد حساب کاربری نمی‌شود و هرگز مسدودیت سایت‌ها را دور نمی‌زند.
-- اگر سایتی جواب ندهد، گزارش اسم آن سایت و دلیلش را می‌نویسد. پس «هیچ آگهی‌ای نبود» با «نتوانستیم بگردیم» اشتباه گرفته نمی‌شود.
+---
 
-### بعد از اولین گزارش
+### فرمان‌های کاربردی
 
-| کار | فرمان |
+| کارایی | فرمان |
 |---|---|
-| دوباره گشتن | `python -m jobradar start` |
-| نشان‌کردن، پنهان‌کردن و یادداشت در مرورگر | `python -m jobradar serve` و بعد باز کردن http://127.0.0.1:8765 |
-| تغییر سلیقه بدون دست‌زدن به فایل | `python -m jobradar prefs --add-role "تحلیلگر داده" --remote-only yes --exclude فروش` |
-| عوض کردن زبان گزارش | `python -m jobradar prefs --lang en` یا `--lang fa` |
-| لینک جاب‌ویژن، جابینجا، لینکدین و شرکت‌ها | `python -m jobradar links` |
-| خروجی اکسل (CSV) | `python -m jobradar export > jobs.csv` |
-| بررسی اتصال سایت‌ها | `python -m jobradar doctor` |
-
-تغییر سطح، شهر، دورکاری یا کلمه‌های کنارگذاشته رتبه‌بندی را فوراً عوض می‌کند. عنوان شغلی تازه به یک جست‌وجوی تازه نیاز دارد.
+| اجرای مجدد و سریع جست‌وجو | `python -m jobradar start` |
+| ثبت رزومه متنی جهت تطبیق مهارت‌ها | `python -m jobradar resume <path/to/cv.txt>` یا `python -m jobradar resume "متن مهارت‌ها"` |
+| ثبت صفحه یا لینکدین | `python -m jobradar linkedin "https://linkedin.com/in/username"` |
+| مشاهده مهارت‌های استخراج‌شده | `python -m jobradar resume --show` |
+| بررسی انتشار نسخهٔ جدید رادار | `python -m jobradar check-update` |
+| پنل مدیریت، نشان‌کردن و یادداشت در مرورگر | `python -m jobradar serve` (باز کردن http://127.0.0.1:8765) |
+| تغییر سریع تنظیمات | `python -m jobradar prefs --add-role "تحلیلگر داده" --remote-only yes --exclude فروش` |
+| تغییر زبان گزارش (فارسی / انگلیسی) | `python -m jobradar prefs --lang fa` یا `--lang en` |
+| دریافت لینک‌های دستی برای مرورگر | `python -m jobradar links` |
+| خروجی اکسل و داده‌ها | `python -m jobradar export > jobs.csv` |
+| بررسی سلامت سیستم و منابع | `python -m jobradar doctor` |
 
 </div>
+
+
+---
 
 <a id="english"></a>
 
 ## English
 
-Job Radar searches several Iranian job sites using your job titles. It ranks the ads for you and shows the reason next to each score. You get a report in Persian (right-to-left) or English. Everything stays on your computer, and it never applies to a job for you.
+Iran Job Radar is a lightweight, local-first open-source tool that searches major Iranian job boards and companies according to your target roles and skills. It transparently ranks job listings, explains every point gained or lost, and renders an offline Persian (RTL) or English report.
 
-### Start in three steps
+Everything stays strictly on your machine — no third-party cloud uploads, no logins required, and no automatic applications.
 
-1. Install [Python](https://www.python.org/downloads/). On Windows, tick **Add python to PATH**.
-2. Download this repo: green **Code** button → **Download ZIP**, then unzip it.
-3. On Windows, double-click `start.bat`. On macOS or Linux, run `sh start.sh`.
+### Quickstart
 
-It asks for your language first, then a few short questions:
+1. **Install Python:** Ensure Python 3.9+ is installed (tick **Add python to PATH** on Windows).
+2. **Download:** Click the green **Code** button above → **Download ZIP**, then extract it.
+3. **Run:** Double-click `start.bat` on Windows, or run `sh start.sh` on macOS/Linux.
 
-- which jobs you want;
-- your level;
-- which cities work for you;
-- whether remote is OK;
-- which words should not appear in a job title.
+On first run, it guides you through a few quick questions:
+- Target job titles (e.g. `QA engineer, کنترل کیفیت`);
+- Seniority level (junior, mid, senior);
+- Preferred cities (or blank for anywhere);
+- Remote preference (allowed, or remote-only);
+- Excluded keywords (e.g. sales, marketing);
+- Optional resume file or text summary (to match technical skills against job descriptions).
 
-It then searches, builds the report and opens it in your browser. The first run takes a few minutes. If you stop it, the next run carries on from where it stopped.
+It searches the sources, ranks the results with plain-language explanations, and opens the HTML report in your browser. Subsequent runs resume from where you left off.
 
-**Tip:** give titles in both Persian and English, e.g. `QA engineer, کنترل کیفیت`. Many ads are written in only one of the two. If you give only one, the radar reminds you.
+---
 
-### Where it searches
+### Sources & Coverage
 
-| Site | How | Limit |
+| Source | Mode | Notes |
 |---|---|---|
-| [IranTalent](https://www.irantalent.com) | automatic | first 2 result pages per title |
-| [Karboom](https://karboom.io) | automatic | first result page, details for up to 8 ads per title |
-| [Quera Magnet](https://quera.org/magnet/jobs) | automatic | mostly programming and tech jobs; usually empty for other fields |
-| [JobVision](https://jobvision.ir) | search link in the report | its terms restrict automated collection; you open it in your own browser |
-| [Jobinja](https://jobinja.ir) | search link in the report | same reason |
-| [LinkedIn](https://www.linkedin.com/jobs) | search link in the report | needs a login and forbids automated collection |
-| [e-estekhdam](https://www.e-estekhdam.com) | search link in the report | — |
-| Careers pages of 15 Iranian companies | link list in the report | Digikala, Cafe Bazaar, Divar, Tapsi, Snappfood, Basalam, Khodro45, Yektanet, Digipay, Dotin, SEP, ArvanCloud, ZarinPal, Vandar, Namava. Each one opened when checked on 3 Nov 2026. List: [`jobradar/data/companies.json`](jobradar/data/companies.json). |
+| [IranTalent](https://www.irantalent.com) | Automated | First 2 result pages per role |
+| [Karboom](https://karboom.io) | Automated | First page and full details for top 8 ads per role |
+| [Quera Magnet](https://quera.org/magnet/jobs) | Automated | Primarily software engineering & technical roles |
+| [JobVision](https://jobvision.ir) | Direct search link | Terms restrict scraping; opens pre-filtered in your browser |
+| [Jobinja](https://jobinja.ir) | Direct search link | Same reason |
+| [LinkedIn](https://www.linkedin.com/jobs) | Direct search link | Login wall & automated scraping forbidden |
+| [e-estekhdam](https://www.e-estekhdam.com) | Direct search link | Direct pre-filtered link |
+| 15 Iranian Tech Careers Pages | Direct links in report | Digikala, Cafe Bazaar, Divar, Tapsi, Snappfood, Basalam, Khodro45, Yektanet, Digipay, Dotin, SEP, ArvanCloud, ZarinPal, Vandar, Namava |
 
-Rules:
+---
 
-- The radar asks for one page at a time and waits one second between requests.
-- It never logs in to a site and never gets around a block.
-- When a site fails, the report names the site and gives the reason. That way "no jobs" is never confused with "could not search".
-
-### After the first report
+### Useful Commands
 
 | Task | Command |
 |---|---|
-| Search again | `python -m jobradar start` |
-| Save, hide and add notes in the browser | `python -m jobradar serve`, then open http://127.0.0.1:8765 |
+| Run search & open report | `python -m jobradar start` |
+| Add resume / skills for matching | `python -m jobradar resume <file.txt>` or `python -m jobradar resume "skills list"` |
+| Set LinkedIn profile URL | `python -m jobradar linkedin "https://linkedin.com/in/username"` |
+| View current resume skills | `python -m jobradar resume --show` |
+| Check for new releases on GitHub | `python -m jobradar check-update` |
+| Interactive local browser panel | `python -m jobradar serve` (open http://127.0.0.1:8765) |
 | Change preferences without editing files | `python -m jobradar prefs --add-role "data analyst" --remote-only yes --exclude sales` |
-| Change the report language | `python -m jobradar prefs --lang fa` or `--lang en` |
-| Get JobVision, Jobinja, LinkedIn and company links | `python -m jobradar links` |
-| Export to a spreadsheet (CSV) | `python -m jobradar export > jobs.csv` |
-| Check whether the sites are reachable | `python -m jobradar doctor` |
+| Change interface language | `python -m jobradar prefs --lang en` or `--lang fa` |
+| Export to CSV / JSON | `python -m jobradar export > jobs.csv` |
+| Check system and site reachability | `python -m jobradar doctor` |
 
-Changing your level, cities, remote setting or excluded words re-ranks the results at once. A new job title needs a new search.
+---
 
-### How the ranking works
+### Transparent Ranking Logic
 
-Each job starts at 0 points. It gains or loses points in these ways:
+Every listing begins at 0 points and gains or loses points with explicit reasons:
 
-| Rule | Points |
+| Criterion | Points |
 |---|---|
-| Title matches one of your roles | +40 |
-| Title has all the words of a role | +28 |
-| Title shares a word with a role | +12 |
-| Description mentions a role | +8 |
-| No role found anywhere | −20 |
-| Level matches yours | +12 |
-| Level one step away | −4 |
-| Level two steps away | −15 |
-| Remote, and you accept remote | +10 |
-| Your city | +8 |
-| Another city | −6 |
-| You want remote only, and the job is on-site | −25 |
-| You want remote only, and the job is hybrid | −10 |
-| Ad language not in your list | −8 |
-| Posted in the last week | +5 |
+| Title exactly matches a target role | +40 |
+| Title contains all words of a target role | +28 |
+| Title shares a significant word with a target role | +12 |
+| Job description mentions a target role | +8 |
+| Target role absent from title and description | −20 |
+| Job description matches skills from your resume/LinkedIn | +3 per skill (up to +15 max) |
+| Seniority matches your level | +12 |
+| Seniority differs by one tier | −4 |
+| Seniority differs by two tiers | −15 |
+| Remote job, and you accept remote | +10 |
+| Location matches your city list | +8 |
+| Location differs from your city list | −6 |
+| You requested remote-only, but job is on-site | −25 |
+| You requested remote-only, but job is hybrid | −10 |
+| Posted within the last 7 days | +5 |
 | Older than 90 days | −5 |
-| Ad is closed | −30 |
+| Job is expired / closed | −30 |
 
-Full-time and part-time jobs are ranked the same. If the same job appears on two sites, it is merged into one card that links to both. Jobs with one of your excluded words are hidden, and the hidden list shows why. The rules are in [`jobradar/rank.py`](jobradar/rank.py).
+Duplicate listings across different portals are merged into a single card linking to all sources. Listings containing your excluded words are cleanly separated into a hidden section with reasons shown. Full details in [`jobradar/rank.py`](jobradar/rank.py).
 
-### For agents and scripts
+---
 
-Everything also runs without prompts:
+### For Agents and Automation
 
-```
-python -m jobradar init --lang en --role "qa engineer" --role "کنترل کیفیت" --seniority junior --location Tehran
+Commands run completely headless and scriptable:
+
+```bash
+python -m jobradar init --lang fa --role "توسعه‌دهنده پایتون" --role "backend developer" --seniority senior --location Tehran
+python -m jobradar resume "Python, FastAPI, Docker, PostgreSQL, Redis, Kafka"
 python -m jobradar run --sources irantalent,karboom
+python -m jobradar report
 ```
 
-Exit codes from `run`:
+Exit codes:
+- `0`: Succeeded
+- `3`: Partial (some sources temporarily blocked or unreachable; others succeeded)
+- `4`: Blocked
+- `5`: Cancelled
 
-| Code | Meaning |
-|---|---|
-| 0 | succeeded |
-| 3 | partial (some sources failed; they are named) |
-| 4 | blocked |
-| 5 | cancelled |
+Run tests: `pytest -q`
 
-Tests: `pip install pytest && python -m pytest -q`
+---
 
-### Privacy
+### Privacy & Security
 
-Your profile, the jobs found, your notes and your marks stay in `workspace/` on your computer. Nothing is uploaded. See [SECURITY.md](SECURITY.md).
+Your profile, resume text, notes, and scraped results live exclusively in `workspace/` on your computer. Nothing is transmitted externally. See [SECURITY.md](SECURITY.md).
 
 ### Licence
 
-[MIT](LICENSE). Job ads belong to their publishers. The radar shows the title and a link and sends you to the original page.
+[MIT](LICENSE). Job listings remain the intellectual property of their respective publishers.

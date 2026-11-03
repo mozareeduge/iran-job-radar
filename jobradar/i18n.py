@@ -25,6 +25,9 @@ T = {
         "why_head": "چرا این رتبه",
         "excluded": "پنهان شد چون کلمهٔ کنارگذاشته‌شدهٔ شما را دارد",
         "disabled": "خاموش (قوانین سایت)",
+        "resume_skills": "مهارت‌های رزومه",
+        "skills_found": "مهارت تطبیق داده شد",
+        "update_available": "نسخهٔ جدید موجود است",
     },
     "en": {
         "title": "Job Radar",
@@ -50,6 +53,9 @@ T = {
         "why_head": "why this rank",
         "excluded": "hidden because it contains one of your excluded words",
         "disabled": "off (site terms)",
+        "resume_skills": "resume skills",
+        "skills_found": "skills matched",
+        "update_available": "New version available",
     },
 }
 
@@ -98,18 +104,21 @@ FA_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
 
 
 def num(lang, n):
-    return str(n).translate(FA_DIGITS) if lang == "fa" else str(n)
+    s = str(n)
+    return s.translate(FA_DIGITS) if lang == "fa" else s
 
 
-EMP_FA = {"full time": "تمام‌وقت", "full-time": "تمام‌وقت", "fulltime": "تمام‌وقت", "part time": "پاره‌وقت", "part-time": "پاره‌وقت",
-          "contract": "قراردادی", "internship": "کارآموزی", "remote": "دورکاری"}
+def when(iso_str):
+    if not iso_str:
+        return "-"
+    return iso_str[:16].replace("T", " ")
 
 
-def emp(lang, text):
-    return EMP_FA.get((text or "").strip().lower(), text) if lang == "fa" else text
+EMP_FA = {"full-time": "تمام‌وقت", "part-time": "پاره‌وقت", "contract": "قراردادی", "internship": "کارآموزی"}
 
 
-def when(text):
-    """2026-11-03T19:24:23 -> 2026-11-03 19:24"""
-    t = (text or "").replace("T", " ")
-    return t[:16] if len(t) >= 16 else t
+def emp(lang, val):
+    val = (val or "").strip().lower()
+    if lang == "fa":
+        return EMP_FA.get(val, val)
+    return val
