@@ -1,0 +1,22 @@
+{
+  "schema": "jobradar-companies/1",
+  "checked": "2026-11-03",
+  "note": "Careers pages that answered HTTP 200 on the check date. Not read automatically; links for people to open. Add a company with a pull request; include the date you checked it.",
+  "companies": [
+    {"name": "Digikala", "name_fa": "دیجی‌کالا", "sector": "e-commerce", "url": "https://careers.digikala.com/"},
+    {"name": "Cafe Bazaar", "name_fa": "کافه‌بازار", "sector": "app store", "url": "https://careers.cafebazaar.ir/"},
+    {"name": "Divar", "name_fa": "دیوار", "sector": "classifieds", "url": "https://divar.ir/about/careers"},
+    {"name": "Tapsi", "name_fa": "تپسی", "sector": "ride hailing", "url": "https://careers.tapsi.ir/"},
+    {"name": "Snappfood", "name_fa": "اسنپ‌فود", "sector": "food delivery", "url": "https://jobinja.ir/companies/snappfood/jobs"},
+    {"name": "Basalam", "name_fa": "باسلام", "sector": "marketplace", "url": "https://join.basalam.com/"},
+    {"name": "Khodro45", "name_fa": "خودرو۴۵", "sector": "automotive", "url": "https://careers.khodro45.com/"},
+    {"name": "Yektanet", "name_fa": "یکتانت", "sector": "ad tech", "url": "https://www.yektanet.com/careers"},
+    {"name": "Digipay", "name_fa": "دیجی‌پی", "sector": "fintech", "url": "https://www.mydigipay.com/careers/"},
+    {"name": "Dotin", "name_fa": "داتین", "sector": "banking software", "url": "https://www.dotin.ir/careers/"},
+    {"name": "Saman Electronic Payment (SEP)", "name_fa": "پرداخت الکترونیک سامان", "sector": "fintech", "url": "https://career.hrcando.ir/co/Saman%20Electronic%20Payment"},
+    {"name": "ArvanCloud", "name_fa": "ابر آروان", "sector": "cloud", "url": "https://www.arvancloud.ir/fa/careers"},
+    {"name": "ZarinPal", "name_fa": "زرین‌پال", "sector": "fintech", "url": "https://zarinpal.com/careers"},
+    {"name": "Vandar", "name_fa": "وندار", "sector": "fintech", "url": "https://vandar.io/careers"},
+    {"name": "Namava", "name_fa": "نماوا", "sector": "streaming", "url": "https://www.namava.ir/careers"}
+  ]
+}
