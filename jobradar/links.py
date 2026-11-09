@@ -1,6 +1,6 @@
 """Search links the person opens in their own browser, and the company careers list.
-The radar never fetches these: their terms restrict automated collection (JobVision, Jobinja, LinkedIn)
-or they are not machine-readable yet. Opening a normal search page yourself is ordinary use."""
+LinkedIn needs a login and e-estekhdam is not read yet, so these links are the only way to them. JobVision and Jobinja
+are read by the radar; their links stay here as a fallback when a run shows them as blocked (for example outside Iran)."""
 import json, pathlib, urllib.parse as U
 
 Q = U.quote

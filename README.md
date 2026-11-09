@@ -36,8 +36,8 @@
 | [ایران‌تلنت (IranTalent)](https://www.irantalent.com) | خودکار | بررسی دو صفحهٔ اول نتایج برای هر عنوان |
 | [کاربوم (Karboom)](https://karboom.io) | خودکار | صفحهٔ اول نتایج و بررسی دقیق تا ۸ آگهی برای هر عنوان |
 | [کوئرا مگنت (Quera)](https://quera.org/magnet/jobs) | خودکار | تمرکز روی آگهی‌های فنی و نرم‌افزاری |
-| [جاب‌ویژن (JobVision)](https://jobvision.ir) | لینک مستقیم جست‌وجو در گزارش | به‌دلیل شرایط سایت و جلوگیری از انسداد، با یک کلیک در مرورگر خودتان باز می‌شود |
-| [جابینجا (Jobinja)](https://jobinja.ir) | لینک مستقیم جست‌وجو در گزارش | همان دلیل |
+| [جاب‌ویژن (JobVision)](https://jobvision.ir) | خودکار | همان API که وب‌سایت خودش صدا می‌زند؛ بررسی دقیق تا ۸ آگهی برای هر عنوان. خارج از ایران معمولاً اتصال را می‌بندد |
+| [جابینجا (Jobinja)](https://jobinja.ir) | خودکار | صفحهٔ اول نتایج و بررسی دقیق تا ۸ آگهی برای هر عنوان. خارج از ایران معمولاً اتصال را می‌بندد |
 | [لینکدین (LinkedIn)](https://www.linkedin.com/jobs) | لینک مستقیم جست‌وجو در گزارش | نیاز به ورود به حساب کاربری دارد و برداشت خودکار مجاز نیست |
 | [ای‌استخدام (e-estekhdam)](https://www.e-estekhdam.com) | لینک مستقیم جست‌وجو در گزارش | باز شدن مستقیم با فیلترهای شما |
 | صفحهٔ استخدام ۱۵ شرکت معتبر | پیوند مستقیم به بخش Careers | دیجی‌کالا، کافه‌بازار، دیوار، تپسی، اسنپ‌فود، باسلام، خودرو۴۵، یکتانت، دیجی‌پی، داتین، سپ، ابر آروان، زرین‌پال، وندار، نماوا |
@@ -103,8 +103,8 @@ It searches the sources, ranks the results with plain-language explanations, and
 | [IranTalent](https://www.irantalent.com) | Automated | First 2 result pages per role |
 | [Karboom](https://karboom.io) | Automated | First page and full details for top 8 ads per role |
 | [Quera Magnet](https://quera.org/magnet/jobs) | Automated | Primarily software engineering & technical roles |
-| [JobVision](https://jobvision.ir) | Direct search link | Terms restrict scraping; opens pre-filtered in your browser |
-| [Jobinja](https://jobinja.ir) | Direct search link | Same reason |
+| [JobVision](https://jobvision.ir) | Automated | The JSON API its own web app calls; full details for top 8 ads per role. Usually refuses connections from outside Iran |
+| [Jobinja](https://jobinja.ir) | Automated | First page and full details for top 8 ads per role. Usually refuses connections from outside Iran |
 | [LinkedIn](https://www.linkedin.com/jobs) | Direct search link | Login wall & automated scraping forbidden |
 | [e-estekhdam](https://www.e-estekhdam.com) | Direct search link | Direct pre-filtered link |
 | 15 Iranian Tech Careers Pages | Direct links in report | Digikala, Cafe Bazaar, Divar, Tapsi, Snappfood, Basalam, Khodro45, Yektanet, Digipay, Dotin, SEP, ArvanCloud, ZarinPal, Vandar, Namava |

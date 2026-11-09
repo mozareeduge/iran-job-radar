@@ -1,11 +1,12 @@
-"""Source adapters for Quera Magnet, IranTalent and Karboom: the public search pages and endpoints a browser uses.
-Every failure becomes a named Blocked reason, so a run never fails silently.
-JobVision and Jobinja are not read automatically (their terms restrict it); `jobradar links` gives search links instead."""
+"""Source adapters for Quera Magnet, IranTalent, Karboom, Jobinja and JobVision: the public search pages and endpoints a browser uses.
+The radar is a personal agent run on the person's own machine: one request at a time, a pause between requests, no login,
+no captcha or block evasion. A refusal (403/429) stops that source for the run and is named in the report.
+Every failure becomes a named Blocked reason, so a run never fails silently."""
 import re, json, html, time, datetime as dt
 from bs4 import BeautifulSoup
 
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36"}
-DISABLED = {"jobvision": "not read automatically: site terms restrict automated collection; use `jobradar links`", "jobinja": "not read automatically: site terms restrict automated collection; use `jobradar links`"}
+DISABLED = {}   # source id -> reason, for a source switched off; shown in the report's coverage table
 NEXT = re.compile(r'__NEXT_DATA__[^>]*>(.*?)</script>', re.S)
 LOGIN = re.compile(r'(type=["\']password["\']|name=["\']password["\']|<form[^>]+action=["\'][^"\']*login)', re.I)   # a real login form, not a nav link
 MODES = [("remote", r"(دورکاری|دور\s*کاری|fully\s*remote|remote[- ]first|remote\s*(work|position|role|job)|work\s*from\s*home)"),
@@ -206,5 +207,179 @@ def karboom_unit(http, kw, pages=1, details=8, known=()):
     return rows
 
 
-UNITS = {"quera": quera_unit, "irantalent": irantalent_unit, "karboom": karboom_unit}
-NAMES = {"quera": "Quera Magnet", "irantalent": "IranTalent", "karboom": "Karboom"}
+def jsonld_job(soup):
+    """The schema.org JobPosting block of a job page, or {}."""
+    for sc in soup.select('script[type="application/ld+json"]'):
+        txt = sc.string or sc.get_text() or ""
+        if '"JobPosting"' not in txt:
+            continue
+        try:
+            d = json.loads(txt, strict=False)
+        except Exception:
+            continue
+        for x in (d if isinstance(d, list) else d.get("@graph", [d]) if isinstance(d, dict) else []):
+            if isinstance(x, dict) and x.get("@type") == "JobPosting":
+                return x
+    return {}
+
+
+def _ld_place(jp):
+    loc = jp.get("jobLocation") or {}
+    loc = loc[0] if isinstance(loc, list) and loc else loc
+    a = (loc.get("address") or {}) if isinstance(loc, dict) else {}
+    return (a.get("addressLocality") or a.get("addressRegion") or "") if isinstance(a, dict) else ""
+
+
+EXPIRED = re.compile(r"(آگهی\s*منقضی\s*شده|این\s*آگهی\s*(به\s*پایان\s*رسیده|منقضی)|مهلت\s*ارسال\s*رزومه\s*به\s*پایان|no longer accepting)", re.I)
+
+
+# ---- Jobinja (server-rendered search page + job page) ----
+JJ_LINK = re.compile(r'https://jobinja\.ir/(?:companies/[^/"\s]+/)?jobs/([A-Za-z0-9]{3,12})/[^"\s?#<>]*')
+JJ_INFO = {"موقعیت مکانی": "location", "نوع همکاری": "employment", "حداقل سابقه کار": "seniority", "حقوق": "salary"}
+
+
+def jobinja_unit(http, kw, pages=1, details=8, known=()):
+    found = {}
+    for p in range(1, pages + 1):
+        r = call(http.get, "https://jobinja.ir/jobs", params={"filters[keywords][0]": kw, "page": p})
+        s = BeautifulSoup(r.text, "html.parser")
+        n0 = len(found)
+        for a in s.find_all("a", href=JJ_LINK):
+            m = JJ_LINK.match(a["href"])
+            code, url = m.group(1), m.group(0)
+            title = a.get_text(" ", strip=True)
+            if code in found or not title:
+                continue
+            meta, li = {}, a.find_parent("li") or a.find_parent("div")
+            for it in (li.select('[class*="metaItem"]') if li else []):
+                icon = " ".join(" ".join(i.get("class", [])) for i in it.find_all("i"))
+                key = "company" if "construction" in icon else "location" if "place" in icon else "employment" if "resume" in icon else None
+                key = key or ("company", "location", "employment")[min(len(meta), 2)]
+                meta.setdefault(key, it.get_text(" ", strip=True))
+            found[code] = dict(url=url, title=title, **meta)
+        if len(found) == n0:
+            if p == 1 and not found and LOGIN.search(r.text):
+                raise wall_or_format(r.text)
+            break
+    rows, fetched = Rows(), 0
+    for code, f in found.items():
+        sid = f"jj-{code}"
+        if f"Jobinja:{sid}" in known:
+            rows.seen += 1
+            continue
+        row = norm_row(source="Jobinja", source_id=sid, url=f["url"], title=f["title"], company=f.get("company", ""),
+                       location=f.get("location", ""), employment=f.get("employment", ""))
+        if fetched < details:
+            fetched += 1
+            try:
+                dr = call(http.get, f["url"])
+                ds = BeautifulSoup(dr.text, "html.parser")
+                jp, info = jsonld_job(ds), {}
+                for it in ds.select('[class*="infoBox__item"]'):
+                    t, v = it.select_one('[class*="itemTitle"]'), it.select_one('[class*="itemTags"]')
+                    k = JJ_INFO.get(t.get_text(" ", strip=True) if t else "")
+                    if k and v:
+                        info[k] = " ".join(v.get_text(" ", strip=True).split())
+                org = jp.get("hiringOrganization") or {}
+                comp = ds.select_one('[class*="companyHeader__name"]')
+                body = ds.select('[class*="o-box__text"]')
+                vt = (jp.get("validThrough") or "")[:10]
+                row.update(company=(org.get("name") if isinstance(org, dict) else "") or (comp.get_text(" ", strip=True) if comp else "") or row["company"],
+                           location=info.get("location") or _ld_place(jp) or row["location"],
+                           employment=info.get("employment") or jp.get("employmentType") or row["employment"],
+                           seniority=info.get("seniority", ""), salary=info.get("salary", ""),
+                           posted_at=(jp.get("datePosted") or "")[:10], expires_at=vt,
+                           jd=(clean(jp.get("description") or "") or "\n".join(clean(str(b)) for b in body))[:6000],
+                           live=not (EXPIRED.search(dr.text) or (vt and vt < dt.date.today().isoformat())))
+                row = norm_row(**row)
+            except Blocked as e:
+                if "refused" in e.reason or "rate" in e.reason:
+                    raise
+            except Exception:
+                pass  # detail is optional; the list row is still a real observation
+        rows.append(row)
+    return rows
+
+
+# ---- JobVision (the JSON API its own web app calls) ----
+JV_API = "https://candidateapi.jobvision.ir/api/v1/JobPost"
+
+
+def _g(d, *path):
+    for k in path:
+        d = d.get(k) if isinstance(d, dict) else None
+    return d
+
+
+def _first(*vals):
+    return next((v for v in vals if v not in (None, "", [], {})), "")
+
+
+def _jv_text(v):
+    if isinstance(v, dict):
+        return _first(v.get("titleFa"), v.get("title"), v.get("nameFa"), v.get("titleEn"), v.get("value"))
+    if isinstance(v, list):
+        return ", ".join(t for t in (_jv_text(x) for x in v) if t)
+    return "" if v is None else str(v)
+
+
+def jobvision_unit(http, kw, pages=1, details=8, known=()):
+    H = {"Origin": "https://jobvision.ir", "Referer": "https://jobvision.ir/", "Accept": "application/json"}
+    posts = []
+    for p in range(1, pages + 1):
+        r = call(http.post, f"{JV_API}/List", headers=H, json={"pageSize": 30, "requestedPage": p, "keyword": kw, "sortBy": 1, "searchId": None})
+        try:
+            d = r.json()
+            d = d.get("data") or d
+            batch = d.get("jobPosts") if isinstance(d, dict) else None
+            if batch is None:
+                raise ValueError
+        except Exception:
+            raise wall_or_format(r.text)
+        posts += batch
+        if len(batch) < 30:
+            break
+    rows, fetched = Rows(), 0
+    for j in posts:
+        jid = j.get("id")
+        if not jid:
+            continue
+        sid = f"jv-{jid}"
+        if f"JobVision:{sid}" in known:
+            rows.seen += 1
+            continue
+        loc = j.get("location") or {}
+        city = _first(_jv_text(_g(loc, "city")), _jv_text(_g(loc, "province")), _jv_text(loc) if not isinstance(loc, dict) else "")
+        remote = j.get("isRemote") or j.get("isRemoteWork")
+        exp = _first(_g(j, "expireTime", "date"), j.get("expireTime") if isinstance(j.get("expireTime"), str) else "")
+        row = norm_row(source="JobVision", source_id=sid, url=f"https://jobvision.ir/jobs/{jid}", title=j.get("title") or "",
+                       company=_first(_g(j, "company", "nameFa"), _g(j, "company", "nameEn"), _g(j, "company", "name")),
+                       location=city, work_mode="remote" if remote else "unknown",
+                       employment=_jv_text(_first(j.get("workType"), j.get("workTypes"), j.get("employmentType"))),
+                       seniority=_jv_text(_first(j.get("seniorityLevel"), j.get("workExperience"))),
+                       salary=_jv_text(j.get("salary")) if not isinstance(j.get("salary"), (int, float)) else str(j["salary"]),
+                       posted_at=str(_first(_g(j, "activationTime", "date"), j.get("activationTime") if isinstance(j.get("activationTime"), str) else ""))[:10],
+                       expires_at=str(exp)[:10], live=not j.get("isExpired", False),
+                       jd=clean(_first(j.get("description"), j.get("summary"))))
+        if fetched < details:
+            fetched += 1
+            try:
+                dd = call(http.get, f"{JV_API}/Detail", params={"jobPostId": jid}, headers=H).json()
+                dd = dd.get("data") or dd
+                jd = "\n".join(clean(str(x)) for x in (dd.get("description"), dd.get("requirements"), dd.get("responsibilities"), dd.get("benefits")) if x)
+                if jd:
+                    row["jd"] = jd[:6000]
+                if dd.get("isExpired") or dd.get("isActive") is False:
+                    row["live"] = False
+                row = norm_row(**row)
+            except Blocked as e:
+                if "refused" in e.reason or "rate" in e.reason:
+                    raise
+            except Exception:
+                pass  # detail is optional; the list row is still a real observation
+        rows.append(row)
+    return rows
+
+
+UNITS = {"quera": quera_unit, "irantalent": irantalent_unit, "karboom": karboom_unit, "jobinja": jobinja_unit, "jobvision": jobvision_unit}
+NAMES = {"quera": "Quera Magnet", "irantalent": "IranTalent", "karboom": "Karboom", "jobinja": "Jobinja", "jobvision": "JobVision"}
