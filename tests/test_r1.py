@@ -44,7 +44,40 @@ def ok_handler(url, kind, kw):
                                                     "location_text_farsi": "تهران", "work_type": "on_site", "employment_type": {"title": "Part-time"}}], "last_page": 1}})
     if "karboom" in url:
         return Resp(200, "<html>no results</html>")
+    if "jobinja.ir/companies/" in url:
+        return Resp(200, JOBINJA_DETAIL)
+    if "jobinja" in url:
+        kwd = (kw.get("params") or {}).get("filters[keywords][0]", "")
+        return Resp(200, jobinja_page(10 if kwd == "qa engineer" else 20) if (kw.get("params") or {}).get("page") == 1 else "<html></html>")
+    if "JobPost/Detail" in url:
+        return Resp(200, "{}", {"data": {"description": "<p>Write <b>test plans</b></p>", "requirements": "selenium"}})
+    if "jobvision" in url:
+        return Resp(200, "{}", {"data": {"jobPosts": [jobvision_post(500 + len(str(kw.get("json"))))], "jobPostCount": 1}})
     return Resp(404)
+
+
+def jobinja_page(n):
+    return "<ul>" + "".join(
+        f'''<li class="o-listView__item c-jobListView__item"><h2><a class="c-jobListView__titleLink" href="https://jobinja.ir/companies/acme/jobs/Ab{n}/qa-engineer?_ref=16">QA Engineer {n}</a></h2>
+        <ul><li class="c-jobListView__metaItem"><i class="c-icon c-icon--construction"></i><span>شرکت آکمه</span></li>
+        <li class="c-jobListView__metaItem"><i class="c-icon c-icon--place"></i><span>تهران ، تهران</span></li>
+        <li class="c-jobListView__metaItem"><i class="c-icon c-icon--resume"></i><span>قراردادی</span></li></ul></li>''' for n in (n, n + 1)) + "</ul>"
+
+
+JOBINJA_DETAIL = '''<html><script type="application/ld+json">{"@context":"https://schema.org","@type":"JobPosting","title":"QA Engineer",
+"datePosted":"2026-11-01T10:00:00+03:30","validThrough":"2099-01-01","description":"&lt;p&gt;Manual and automated testing&lt;/p&gt;",
+"hiringOrganization":{"@type":"Organization","name":"Acme"},"employmentType":"FULL_TIME"}</script>
+<ul><li class="c-infoBox__item"><h4 class="c-infoBox__itemTitle">موقعیت مکانی</h4><div class="tags"><span class="c-infoBox__itemTags">تهران</span></div></li>
+<li class="c-infoBox__item"><h4 class="c-infoBox__itemTitle">نوع همکاری</h4><div><span class="c-infoBox__itemTags">تمام وقت</span></div></li>
+<li class="c-infoBox__item"><h4 class="c-infoBox__itemTitle">حقوق</h4><div><span class="c-infoBox__itemTags">توافقی</span></div></li></ul></html>'''
+
+
+def jobvision_post(i, **kw):
+    d = {"id": i, "title": f"QA Engineer {i}", "company": {"id": 9, "nameFa": "آکمه", "nameEn": "Acme"},
+         "location": {"province": {"titleFa": "تهران"}, "city": {"titleFa": "تهران"}}, "workType": {"titleFa": "تمام وقت"},
+         "salary": {"titleFa": "توافقی"}, "activationTime": {"date": "2026-11-05T09:00:00", "beautifyFa": "۳ روز پیش"}, "isRemote": False}
+    d.update(kw)
+    return d
 
 
 def ws_with_profile(tmp_path, example="junior-qa"):
@@ -103,7 +136,7 @@ def test_cancel_then_resume_no_duplicates(tmp_path):
     r2 = runner.run(ws, p, http2, resume=True, log=lambda *a: None)
     assert r2["outcome"] == "succeeded" and r2["run_id"] == r1["run_id"]
     assert stored(ws) == stored(full)               # same set, no dupes (key is primary key)
-    n_units = len(P.load(ws)["target_roles"]) * 3
+    n_units = len(P.load(ws)["target_roles"]) * len(C.UNITS)
     assert len(http2.calls) < n_units * 3            # done units were not asked again
     c = store.conn(ws)
     assert c.execute("select count(*) from runs").fetchone()[0] == 1
@@ -161,7 +194,7 @@ def test_saved_hidden_notes_survive_rerun(tmp_path):
     assert st[k1]["state"] == "saved" and st[k1]["note"] == "call them" and st[k2]["state"] == "hidden"
     page = RP.render(ws)
     assert "call them" in page and "Saved" in page and "Hidden (1)" in page
-    assert "Coverage" in page and "Quera Magnet" in page and "Jobvision" in page
+    assert "Coverage" in page and "Quera Magnet" in page and "JobVision" in page and "Jobinja" in page and "Jobvision" not in page
     csv_txt = RP.export(ws, "csv")
     assert "saved" in csv_txt and "call them" in csv_txt
     assert json.loads(RP.export(ws, "json"))
@@ -193,10 +226,49 @@ def test_run_refuses_without_roles(tmp_path, capsys):
     assert "no target_roles" in capsys.readouterr().out
 
 
-def test_disabled_sources_refused(tmp_path):
+def test_unknown_source_refused(tmp_path):
     ws = ws_with_profile(tmp_path)
     with pytest.raises(ValueError):
-        runner.run(ws, P.load(ws), FakeHttp(ok_handler), sources=["jobvision"], log=lambda *a: None)
+        runner.run(ws, P.load(ws), FakeHttp(ok_handler), sources=["linkedin"], log=lambda *a: None)
+
+
+def test_jobinja_list_and_detail():
+    http = FakeHttp(ok_handler)
+    rows = C.jobinja_unit(http, "qa engineer", details=1)
+    assert [r["source_id"] for r in rows] == ["jj-Ab10", "jj-Ab11"]
+    a, b = rows
+    assert a["url"] == "https://jobinja.ir/companies/acme/jobs/Ab10/qa-engineer"      # tracking query dropped
+    assert a["company"] == "Acme" and a["location"] == "تهران" and a["salary"] == "توافقی" and a["posted_at"] == "2026-11-01"
+    assert "automated testing" in a["jd"] and a["live"] is True
+    assert b["company"] == "شرکت آکمه" and b["location"] == "تهران ، تهران" and b["jd"] == ""   # list-only row past the detail limit
+    assert http.calls[0][2] == {"filters[keywords][0]": "qa engineer", "page": 1}
+    again = C.jobinja_unit(FakeHttp(ok_handler), "qa engineer", known={"Jobinja:jj-Ab10"})
+    assert [r["source_id"] for r in again] == ["jj-Ab11"] and again.seen == 1        # stored rows are not re-read or blanked
+
+
+def test_jobinja_expired_detail_marked_closed():
+    def h(u, k, kw):
+        return Resp(200, "<html><h1>QA</h1><div class='alert'>این آگهی منقضی شده است</div></html>") if "/companies/" in u else ok_handler(u, k, kw)
+    assert C.jobinja_unit(FakeHttp(h), "qa engineer", details=1)[0]["live"] is False
+
+
+def test_jobvision_list_and_detail():
+    http = FakeHttp(ok_handler)
+    rows = C.jobvision_unit(http, "qa engineer")
+    r = rows[0]
+    assert r["source"] == "JobVision" and r["url"] == f"https://jobvision.ir/jobs/{r['source_id'][3:]}"
+    assert r["company"] == "آکمه" and r["location"] == "تهران" and r["employment"] == "تمام وقت" and r["salary"] == "توافقی"
+    assert r["posted_at"] == "2026-11-05" and "test plans" in r["jd"] and "selenium" in r["jd"]
+    assert http.calls[0][0] == "post" and http.calls[0][2]["keyword"] == "qa engineer"
+
+
+def test_jobvision_remote_and_unexpected_format():
+    h = lambda u, k, kw: Resp(200, "{}", {"data": {"jobPosts": [jobvision_post(1, isRemote=True)]}}) if "List" in u else Resp(404)
+    assert C.jobvision_unit(FakeHttp(h), "x")[0]["work_mode"] == "remote"
+    with pytest.raises(C.Blocked, match="unexpected page format"):
+        C.jobvision_unit(FakeHttp(lambda u, k, kw: Resp(200, "<html>app</html>")), "x")
+    with pytest.raises(C.Blocked, match="http 403"):
+        C.jobinja_unit(FakeHttp(lambda u, k, kw: Resp(403)), "x")
 
 
 def test_part_time_normalised():

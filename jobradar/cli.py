@@ -2,7 +2,8 @@
 import argparse, sys, json, pathlib, sqlite3
 from . import profile as P, store, collectors as C, runner, report as RP, rank as R, links as LK, resume as RS, updater as UP
 
-PROBES = {"quera": "https://quera.org/magnet/jobs", "irantalent": "https://www.irantalent.com/", "karboom": "https://karboom.io/jobs"}
+PROBES = {"quera": "https://quera.org/magnet/jobs", "irantalent": "https://www.irantalent.com/", "karboom": "https://karboom.io/jobs",
+          "jobinja": "https://jobinja.ir/jobs", "jobvision": "https://jobvision.ir/"}
 
 
 def out(*a): print(*a, flush=True)
@@ -438,8 +439,8 @@ def main(argv=None):
     s.set_defaults(f=check_update_cmd)
     s = sp.add_parser("start", help="guided: ask, search, report, open (start here)"); s.add_argument("--lang", choices=["fa", "en"])
     s.add_argument("--delay", type=float, default=1.0); s.add_argument("--no-open", action="store_true"); s.set_defaults(f=start)
-    sp.add_parser("links", help="search links for JobVision, Jobinja, LinkedIn and company careers pages").set_defaults(f=links_cmd)
-    s = sp.add_parser("run"); s.add_argument("--resume", action="store_true"); s.add_argument("--sources", nargs="*", help="quera irantalent karboom")
+    sp.add_parser("links", help="search links for LinkedIn, e-estekhdam, JobVision, Jobinja and company careers pages").set_defaults(f=links_cmd)
+    s = sp.add_parser("run"); s.add_argument("--resume", action="store_true"); s.add_argument("--sources", nargs="*", help="quera irantalent karboom jobinja jobvision")
     s.add_argument("--pages", type=int, default=1); s.add_argument("--details", type=int, default=8, help="detail pages fetched per search"); s.add_argument("--delay", type=float, default=1.0)
     s.add_argument("--stop-after-units", type=int, default=None, help="stop (as if cancelled) after N searches"); s.set_defaults(f=run)
     s = sp.add_parser("rank"); s.add_argument("--top", type=int, default=15); s.set_defaults(f=rank_cmd)
